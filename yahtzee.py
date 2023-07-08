@@ -1,28 +1,10 @@
 import random
 import pandas as pd
 
-# Set seed for testing
+# Set seed for testing #TODO Remove seed before submitting
 random.seed(123)
 
-# Create scorecard
-scoreTemplate = {'1s': None, 
-                 '2s': None,
-                 '3s': None,
-                 '4s': None,
-                 '5s': None,
-                 '6s': None,
-                 '3 of a Kind': None,
-                 '4 of a Kind': None,
-                 'Full House': None,
-                 'Yahtzee': None,
-                 'Chance': None}
-# Define dice roll function
-def roll(n):
-    assert n <=5, f"Max of 5 dice allowed, but you tried {n}."
-
-    return [sorted(random.randint(1,6) for i in range(n))]
-
-### Create scoring functions
+############ Create scoring functions ############
 
 # Get dictionary of distinct counts
 def getFreqDic(dice):
@@ -70,6 +52,8 @@ def scoreThreeOfKind(dice):
     freqList = list(freqDic.values())
     if 3 in freqList:
         return sum(dice)
+    else:
+        return 0
         
 # 4 of a kind
 def scoreFourOfKind(dice):
@@ -77,6 +61,8 @@ def scoreFourOfKind(dice):
     freqList = list(freqDic.values())
     if 4 in freqList:
         return sum(dice)
+    else:
+        return 0
 
 # Full house (2 pair and 3 pair)
 def scoreFullHouse(dice):
@@ -84,26 +70,113 @@ def scoreFullHouse(dice):
     freqList = list(freqDic.values())
     if 2 in freqList and 3 in freqList:
         return 25
+    else:
+        return 0
     
 # Small straight (3 in a row)
 def scoreSmStraight(dice):
     for i in range(0,3):
-        print(i)
         if dice[i] == dice[i+1]-1 == dice[i+2]-2:
             return 30
+        else:
+            return 0
 
 # Large straight (4 in a row)
 def scoreLgStraight(dice):
     for i in range(0,2):
         if dice[i] == dice[i+1]-1 == dice[i+2]-2 == dice[i+3]-3:
             return 40
-
-
+        else:
+            return 0
+        
 # Yahtzee (5 of the same)
 def scoreYahtzee(dice):
     if len(set(dice)) == 1:
         return 50
+    else:
+        return 0
     
 # Chance (add everything)
 def scoreChance(dice):
     return sum(dice)
+
+
+
+# Get potential scores
+def getScores(dice):
+    d = {}
+    d['1s'] = scoreOnes(dice)
+    d['2s'] = scoreTwos(dice)
+    d['3s'] = scoreThrees(dice)
+    d['4s'] = scoreFours(dice)
+    d['5s'] = scoreFives(dice)
+    d['6s'] = scoreSixes(dice)
+    d['3 of a Kind'] = scoreThreeOfKind(dice)
+    d['4 of a Kind'] = scoreFourOfKind(dice)
+    d['Full House'] = scoreFullHouse(dice)
+    d['Small Straight'] = scoreSmStraight(dice)
+    d['Large Straight'] = scoreLgStraight(dice)
+    d['Yahtzee'] = scoreYahtzee(dice)
+    d['Chance'] = scoreChance(dice)
+    return d
+
+############ Define Gameplay ############
+
+# Define dice roll function
+def roll(n):
+    return sorted(random.randint(1,6) for i in range(n))
+
+# Find the indexes of the numbers with a frequency of 1
+def findSingles(dice):
+    singleIndexes = []
+    freqDic = getFreqDic(dice)
+    for k,v in freqDic.items():
+        if v == 1:
+            singleIndexes.append(dice.index(k))
+    return singleIndexes
+
+# Define gameplay
+def playYahtzee(strategy, nGames):
+    # Make scorecard template
+    df_combo = pd.DataFrame(columns=['1s','2s','3s','4s','5s','6s',
+                                    '3 of a Kind', '4 of a Kind',
+                                    'Small Straight', 'Large Straight', 'Full House', 
+                                    'Yahtzee', 'Chance', 'Bonus', 'Total'])
+    for gameIter in range(nGames):
+        scorecard = {}
+
+        for _ in range(13): # 13 rounds per game
+
+            if strategy == 'yahtzee':
+                dice = roll(5)
+                for i in range(0,2):
+                    singles = findSingles(dice)
+                    for j in singles:
+                        dice[j] = random.randint(1,6)
+
+                scores = getScores(dice)
+                #TODO add multiple yahtzee option here
+                for k,v in sorted(scores.items(), key=lambda x:x[1], reverse=True):
+                    if k not in scorecard:
+                        scorecard[k] = v
+                        break
+
+        if scorecard['1s']+scorecard['2s']+scorecard['3s']+scorecard['4s']\
+        +scorecard['5s'] +scorecard['6s'] >= 63:
+            scorecard['Bonus'] = 35
+        else:
+            scorecard['Bonus'] = 0
+
+        scorecard['Total'] = scorecard['1s']+scorecard['2s']+scorecard['3s']\
+                            +scorecard['4s']+scorecard['5s']+scorecard['6s']\
+                            +scorecard['Bonus']+scorecard['3 of a Kind']+scorecard['4 of a Kind']\
+                            +scorecard['Full House'] + scorecard['Small Straight']+scorecard['Large Straight']\
+                            +scorecard['Yahtzee']+scorecard['Chance']
+
+        df = pd.DataFrame.from_records(scorecard, index=[gameIter])
+        df_combo = pd.concat([df_combo, df])
+    return df_combo
+        
+
+df_score = playYahtzee(strategy='yahtzee', nGames=10)
+
