@@ -1,4 +1,5 @@
 import random
+import pandas as pd
 
 # Set seed for testing
 random.seed(123)
@@ -10,7 +11,7 @@ random.seed(123)
 def roll(n):
     assert n <=5, f"Max of 5 dice allowed, but you tried {n}."
 
-    return [random.randint(1,6) for i in range(n)]
+    return [sorted(random.randint(1,6) for i in range(n))]
 
 ### Create scoring functions
 # Get dictionary of distinct counts
@@ -46,7 +47,6 @@ def scoreFullHouse(dice):
     
 # Small straight
 def scoreSmStraight(dice):
-    dice = sorted(dice)
     for i in range(0,3):
         print(i)
         if dice[i] == dice[i+1]-1 == dice[i+2]-2:
@@ -54,7 +54,6 @@ def scoreSmStraight(dice):
 
 # Large straight
 def scoreLgStraight(dice):
-    dice = sorted(dice)
     for i in range(0,2):
         if dice[i] == dice[i+1]-1 == dice[i+2]-2 == dice[i+3]-3:
             return 40
