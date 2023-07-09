@@ -1,5 +1,6 @@
 import random
 import pandas as pd
+import seaborn as sns
 
 # Set seed for testing #TODO Remove seed before submitting
 random.seed(123)
@@ -100,8 +101,6 @@ def scoreYahtzee(dice):
 def scoreChance(dice):
     return sum(dice)
 
-
-
 # Get potential scores
 def getScores(dice):
     d = {}
@@ -126,7 +125,7 @@ def getScores(dice):
 def roll(n):
     return sorted(random.randint(1,6) for i in range(n))
 
-# Find the indexes of the numbers with a frequency of 1
+# Find the indexes of the dice numbers with a frequency of 1
 def findSingles(dice):
     singleIndexes = []
     freqDic = getFreqDic(dice)
@@ -141,7 +140,7 @@ def playYahtzee(strategy, nGames):
     df_combo = pd.DataFrame(columns=['1s','2s','3s','4s','5s','6s',
                                     '3 of a Kind', '4 of a Kind',
                                     'Small Straight', 'Large Straight', 'Full House', 
-                                    'Yahtzee', 'Chance', 'Bonus', 'Total'])
+                                    'Yahtzee', 'Chance', 'Bonus', 'Total'], dtype=int)
     for gameIter in range(nGames):
         scorecard = {}
 
@@ -155,11 +154,18 @@ def playYahtzee(strategy, nGames):
                         dice[j] = random.randint(1,6)
 
                 scores = getScores(dice)
-                #TODO add multiple yahtzee option here
+
+                # Take the category 
                 for k,v in sorted(scores.items(), key=lambda x:x[1], reverse=True):
-                    if k not in scorecard:
+
+                    if k not in scorecard and k != 'Yahtzee':
                         scorecard[k] = v
-                        break
+
+                    elif k == 'Yahtzee':
+                        if 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] != 150:
+                            scorecard[k] += v
+                        else:
+                            scorecard[k] = v
 
         if scorecard['1s']+scorecard['2s']+scorecard['3s']+scorecard['4s']\
         +scorecard['5s'] +scorecard['6s'] >= 63:
@@ -175,8 +181,11 @@ def playYahtzee(strategy, nGames):
 
         df = pd.DataFrame.from_records(scorecard, index=[gameIter])
         df_combo = pd.concat([df_combo, df])
-    return df_combo
+
+    hist = sns.histplot(df_combo, x='Total', bins=50, kde=True)
+
+    return df_combo, hist
         
 
-df_score = playYahtzee(strategy='yahtzee', nGames=10)
+df_yahtzeeScore, hist_yahtzee = playYahtzee(strategy='yahtzee', nGames=10000)
 
