@@ -154,6 +154,7 @@ def playYahtzee(strategy, nGames):
                             dice[j] = random.randint(1,6)
 
                 scores = getScores(dice)
+
                 # Score the only category with the most points
                 scoreRecorded=False
                 for k,v in sorted(scores.items(), key=lambda x:x[1], reverse=True):
@@ -161,6 +162,7 @@ def playYahtzee(strategy, nGames):
                     if scoreRecorded == False:
 
                         if k == 'Yahtzee':
+
                             #make sure yahtzee is alreay scored, but not 3 times yet
                             if 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] != 150:
                                 scorecard[k] += v
@@ -184,14 +186,15 @@ def playYahtzee(strategy, nGames):
                     # skip already recorded categories
                     else:
                         pass
+
         # Assign 0 to the categories that were skipped due to multiple yahtzee scores
         for k in scores.keys():
             if k not in scorecard.keys():
                 scorecard[k] = 0
 
         # Score bonus and add up the total
-        if scorecard['1s']+scorecard['2s']+scorecard['3s']+scorecard['4s']\
-        +scorecard['5s'] +scorecard['6s'] >= 63:
+        if scorecard['1s'] + scorecard['2s'] + scorecard['3s'] + scorecard['4s']\
+        + scorecard['5s'] + scorecard['6s'] >= 63:
             scorecard['Bonus'] = 35
         else:
             scorecard['Bonus'] = 0
@@ -199,10 +202,11 @@ def playYahtzee(strategy, nGames):
         scorecard['Total'] = sum(i for i in scorecard.values())
 
 
-
+        # keep all iterations in a single dataframe
         df = pd.DataFrame.from_records(scorecard, index=[gameIter])
         df_combo = pd.concat([df_combo, df])
 
+    # Make a histogram of the total score with trendline
     hist = sns.histplot(df_combo, x='Total', bins=50, kde=True)
 
     return df_combo, hist
