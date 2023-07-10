@@ -151,21 +151,41 @@ def playYahtzee(strategy, nGames):
                 for i in range(0,2):
                     singles = findSingles(dice)
                     for j in singles:
-                        dice[j] = random.randint(1,6)
+                            dice[j] = random.randint(1,6)
 
                 scores = getScores(dice)
+                #BUG some small and large straights arent getting picked up. Test on gameIter 248
+                if gameIter == 248:
+                    print(scores)
 
-                # Take the category 
+                # Score the only category with the most points
+                scoreRecorded=False
                 for k,v in sorted(scores.items(), key=lambda x:x[1], reverse=True):
+                    if scoreRecorded == False:
 
-                    if k not in scorecard and k != 'Yahtzee':
-                        scorecard[k] = v
+                        if k == 'Yahtzee':
+                            #make sure yahtzee is alreay scored, but not 3 times yet
+                            if 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] != 150:
+                                    scorecard[k] += v
+                                    scoreRecorded=True
 
-                    elif k == 'Yahtzee':
-                        if 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] != 150:
-                            scorecard[k] += v
-                        else:
+                            # skip if yahtzee already scored 3 times
+                            elif 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] == 150:
+                                pass
+
+                            #record new yahtzee score
+                            else:
+                                scorecard[k] = v
+                                scoreRecorded=True
+
+                        # score new records
+                        elif k not in scorecard:
                             scorecard[k] = v
+                            scoreRecorded=True
+
+                        # skip already recorded categories
+                        else:
+                            pass
 
         if scorecard['1s']+scorecard['2s']+scorecard['3s']+scorecard['4s']\
         +scorecard['5s'] +scorecard['6s'] >= 63:
@@ -173,11 +193,8 @@ def playYahtzee(strategy, nGames):
         else:
             scorecard['Bonus'] = 0
 
-        scorecard['Total'] = scorecard['1s']+scorecard['2s']+scorecard['3s']\
-                            +scorecard['4s']+scorecard['5s']+scorecard['6s']\
-                            +scorecard['Bonus']+scorecard['3 of a Kind']+scorecard['4 of a Kind']\
-                            +scorecard['Full House'] + scorecard['Small Straight']+scorecard['Large Straight']\
-                            +scorecard['Yahtzee']+scorecard['Chance']
+        scorecard['Total'] = sum(i for i in scorecard.values())
+
 
         df = pd.DataFrame.from_records(scorecard, index=[gameIter])
         df_combo = pd.concat([df_combo, df])
@@ -187,5 +204,5 @@ def playYahtzee(strategy, nGames):
     return df_combo, hist
         
 
-df_yahtzeeScore, hist_yahtzee = playYahtzee(strategy='yahtzee', nGames=10000)
+df_yahtzeeScore, hist_yahtzee = playYahtzee(strategy='yahtzee', nGames=1000)
 
