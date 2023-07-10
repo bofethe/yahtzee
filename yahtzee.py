@@ -154,8 +154,6 @@ def playYahtzee(strategy, nGames):
                             dice[j] = random.randint(1,6)
 
                 scores = getScores(dice)
-                #BUG some small and large straights arent getting picked up. Test on gameIter 248
-
                 # Score the only category with the most points
                 scoreRecorded=False
                 for k,v in sorted(scores.items(), key=lambda x:x[1], reverse=True):
@@ -191,6 +189,7 @@ def playYahtzee(strategy, nGames):
             if k not in scorecard.keys():
                 scorecard[k] = 0
 
+        # Score bonus and add up the total
         if scorecard['1s']+scorecard['2s']+scorecard['3s']+scorecard['4s']\
         +scorecard['5s'] +scorecard['6s'] >= 63:
             scorecard['Bonus'] = 35
