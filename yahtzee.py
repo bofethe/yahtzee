@@ -203,8 +203,8 @@ def playYahtzee(strategy, nGames):
 
 
         # keep all iterations in a single dataframe
-        df = pd.DataFrame.from_records(scorecard, index=[gameIter])
-        df_combo = pd.concat([df_combo, df])
+        df_iter = pd.DataFrame.from_records(scorecard, index=[gameIter])
+        df_combo = pd.concat([df_combo, df_iter])
 
     # Make a histogram of the total score with trendline
     hist = sns.histplot(df_combo, x='Total', bins=50, kde=True)
