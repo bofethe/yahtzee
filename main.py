@@ -1,12 +1,11 @@
 import random
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 from scores import *
 
-# Set seed for testing #TODO Remove seed before submitting
+# Set seed for testing
 random.seed(123)
-
-############ Define Gameplay ############
 
 # Define dice roll function
 def roll(n):
@@ -21,7 +20,10 @@ def findSingles(dice):
             singleIndexes.append(dice.index(k))
     return singleIndexes
 
-# Define gameplay
+
+############ Define Gameplay ############
+
+
 def playYahtzee(strategy, nGames):
     # Make scorecard template
     df_combo = pd.DataFrame(columns=['1s','2s','3s','4s','5s','6s',
@@ -83,9 +85,9 @@ def playYahtzee(strategy, nGames):
                 scores = getScores(dice)
 
                 # Score the only category, starting with the upper section
-                priority = ['1s','2s','3s','4s','5s','6s']
+                uppers = ['1s','2s','3s','4s','5s','6s']
                 scoreRecorded=False
-                for k,v in specialSort(scores, priority).items():
+                for k,v in specialSort(scores, priority=uppers).items():
 
                     if scoreRecorded == False:
 
@@ -133,10 +135,17 @@ def playYahtzee(strategy, nGames):
         df_iter = pd.DataFrame.from_records(scorecard, index=[gameIter])
         df_combo = pd.concat([df_combo, df_iter])
 
-    # Make a histogram of the total score with trendline
+    # Make a histogram of the total score with trendline and show stats
     sns.histplot(df_combo, x='Total', bins=50, kde=True)
+    plt.title(strategy.title() + ' Strategy')
     print(df_combo.describe().round(2))
     return df_combo
-        
 
+
+############ Play the Game ############
+
+#Strategy: Yahtzee
 df_yahtzeeScore = playYahtzee(strategy='yahtzee', nGames=100)
+
+# Strategy: Upper Section
+df_yahtzeeScore = playYahtzee(strategy='upper', nGames=100)
