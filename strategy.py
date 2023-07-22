@@ -1,17 +1,57 @@
-def specialSort(dic, priority):
-    # sort priority scores
-    priorityDic = sorted(priority, key=lambda key: dic[key], reverse=True)
+import random
+from scores import *
 
-    # sort non-prioirty scores
-    otherKeys = [key for key in dic if key not in priority]
-    nonPriorityKeys = sorted(otherKeys, key=lambda key: dic[key], reverse=True)
+# Define dice roll function
+def roll(n):
+    return sorted(random.randint(1,6) for i in range(n))
 
-    # combine score dictionaries
-    comboDic = dict([(key, dic[key]) for key in priorityDic] + [(key, dic[key]) for key in nonPriorityKeys])
+# Find the indexes of the dice numbers with a frequency of 1
+def findSingles(dice):
+    singleIndexes = []
+    freqDic = getFreqDic(dice)
+    for k,v in freqDic.items():
+        if v == 1:
+            singleIndexes.append(dice.index(k))
+    return singleIndexes
 
-    return comboDic
+def stratYahtzee():
+    scorecard = {}
+    dice = roll(5)
+    for i in range(0,2):
+        singles = findSingles(dice)
+        for j in singles:
+                dice[j] = random.randint(1,6)
 
-d = {'1s': 3, '2s': 0, '3s': 6, '4s': 8, '5s': 0, '6s':24}
-prio = ['6s', '5s', '4s']
+    scores = getScores(dice)
 
-specialSort(d, prio)
+    # Score the only category, starting with the most points
+    scoreRecorded=False
+    for k,v in sorted(scores.items(), key=lambda x:x[1], reverse=True):
+
+        if scoreRecorded == False:
+
+            if k == 'Yahtzee':
+
+                #Check if yahtzee is already scored, but not 3 times yet
+                if 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] != 150:
+                    scorecard[k] += v
+                    scoreRecorded=True
+
+                # skip if yahtzee already scored 3 times
+                elif 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] == 150:
+                    pass
+
+                #record first yahtzee score
+                else:
+                    scorecard[k] = v
+                    scoreRecorded=True
+
+            # score new records
+            elif k not in scorecard:
+                scorecard[k] = v
+                scoreRecorded=True
+
+        # skip already recorded categories
+        else:
+            pass
+    return scorecard
