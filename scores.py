@@ -103,11 +103,25 @@ def getScores(dice):
     d['4s'] = scoreFours(dice)
     d['5s'] = scoreFives(dice)
     d['6s'] = scoreSixes(dice)
-    d['3 of a Kind'] = scoreThreeOfKind(dice)
-    d['4 of a Kind'] = scoreFourOfKind(dice)
+    d['Three of a Kind'] = scoreThreeOfKind(dice)
+    d['Four of a Kind'] = scoreFourOfKind(dice)
     d['Full House'] = scoreFullHouse(dice)
     d['Small Straight'] = scoreSmStraight(dice)
     d['Large Straight'] = scoreLgStraight(dice)
     d['Yahtzee'] = scoreYahtzee(dice)
     d['Chance'] = scoreChance(dice)
     return d
+
+# sort a dictionary based on priority keys
+def specialSort(dic, priority):
+    # sort priority scores
+    priorityDic = sorted(priority, key=lambda key: dic[key], reverse=True)
+
+    # sort non-prioirty scores
+    otherKeys = [key for key in dic if key not in priority]
+    nonPriorityKeys = sorted(otherKeys, key=lambda key: dic[key], reverse=True)
+
+    # combine score dictionaries
+    comboDic = dict([(key, dic[key]) for key in priorityDic] + [(key, dic[key]) for key in nonPriorityKeys])
+
+    return comboDic

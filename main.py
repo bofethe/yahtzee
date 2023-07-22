@@ -25,7 +25,7 @@ def findSingles(dice):
 def playYahtzee(strategy, nGames):
     # Make scorecard template
     df_combo = pd.DataFrame(columns=['1s','2s','3s','4s','5s','6s',
-                                    '3 of a Kind', '4 of a Kind',
+                                    'Three of a Kind', 'Four of a Kind',
                                     'Small Straight', 'Large Straight', 'Full House', 
                                     'Yahtzee', 'Chance', 'Bonus', 'Total'], dtype=int)
     for gameIter in range(nGames):
@@ -42,7 +42,7 @@ def playYahtzee(strategy, nGames):
 
                 scores = getScores(dice)
 
-                # Score the only category with the most points
+                # Score the only category, starting with the most points
                 scoreRecorded=False
                 for k,v in sorted(scores.items(), key=lambda x:x[1], reverse=True):
 
@@ -73,6 +73,47 @@ def playYahtzee(strategy, nGames):
                     else:
                         pass
 
+            if strategy == 'upper':
+                dice = roll(5)
+                for i in range(0,2):
+                    singles = findSingles(dice)
+                    for j in singles:
+                            dice[j] = random.randint(1,6)
+
+                scores = getScores(dice)
+
+                # Score the only category, starting with the upper section
+                priority = ['1s','2s','3s','4s','5s','6s']
+                scoreRecorded=False
+                for k,v in specialSort(scores, priority).items():
+
+                    if scoreRecorded == False:
+
+                        if k == 'Yahtzee':
+
+                            #Check if yahtzee is already scored, but not 3 times yet
+                            if 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] != 150:
+                                scorecard[k] += v
+                                scoreRecorded=True
+
+                            # skip if yahtzee already scored 3 times
+                            elif 'Yahtzee' in scorecard.keys() and scorecard['Yahtzee'] == 150:
+                                pass
+
+                            #record first yahtzee score
+                            else:
+                                scorecard[k] = v
+                                scoreRecorded=True
+
+                        # score new records
+                        elif k not in scorecard:
+                            scorecard[k] = v
+                            scoreRecorded=True
+
+                    # skip already recorded categories
+                    else:
+                        pass
+                    
         # Assign 0 to the categories that were skipped due to multiple yahtzee scores
         for k in scores.keys():
             if k not in scorecard.keys():
@@ -93,9 +134,9 @@ def playYahtzee(strategy, nGames):
         df_combo = pd.concat([df_combo, df_iter])
 
     # Make a histogram of the total score with trendline
-    hist = sns.histplot(df_combo, x='Total', bins=50, kde=True)
-
-    return df_combo, hist
+    sns.histplot(df_combo, x='Total', bins=50, kde=True)
+    print(df_combo.describe().round(2))
+    return df_combo
         
 
-df_yahtzeeScore, hist_yahtzee = playYahtzee(strategy='yahtzee', nGames=10000)
+df_yahtzeeScore = playYahtzee(strategy='yahtzee', nGames=100)
