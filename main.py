@@ -2,9 +2,10 @@ import random
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 from scores import *
 
-# Set seed for testing
+# Set seed for testing and reproducibility
 random.seed(123)
 
 # Define dice roll function
@@ -137,15 +138,18 @@ def playYahtzee(strategy, nGames):
 
     # Make a histogram of the total score with trendline and show stats
     sns.histplot(df_combo, x='Total', bins=50, kde=True)
-    plt.title(strategy.title() + ' Strategy')
+    plt.title(strategy.title() + ' Distribution')
+
     print(df_combo.describe().round(2))
+    CI = stats.norm.interval(confidence=0.95, 
+                             loc=df_combo['Total'].mean(), 
+                             scale=df_combo['Total'].std())
+    print('\n',strategy.title(), '95% CI: ', CI)
+
     return df_combo
 
 
 ############ Play the Game ############
 
-#Strategy: Yahtzee
-df_yahtzeeScore = playYahtzee(strategy='yahtzee', nGames=100)
-
-# Strategy: Upper Section
-df_yahtzeeScore = playYahtzee(strategy='upper', nGames=100)
+#Strategy choices: yahtzee | upper
+df_yahtzeeScore = playYahtzee(strategy='upper', nGames=10000)
